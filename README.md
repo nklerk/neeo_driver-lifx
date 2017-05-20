@@ -1,2 +1,5 @@
-# neeo_lifx
-LIFX driver for NEEO.
+# LIFX driver for NEEO
+
+Version 0.0.1
+
+
