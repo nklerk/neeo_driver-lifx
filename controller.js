@@ -281,7 +281,13 @@ module.exports.discover_plus = function() {
 module.exports.discover_z = function() {
   return discover('Z');
 };
-
+module.exports.discover_simple = function() {
+  return sharedDeviceDiscovery().map((device) => ({
+    id: device.id,
+    name: device.name,
+    reachable: device.reachable,
+  }));
+};
 
 
 
