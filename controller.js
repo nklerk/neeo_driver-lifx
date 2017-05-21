@@ -11,11 +11,11 @@ const BluePromise = require('bluebird');
 let sendComponentUpdate;
 
 
-
 //////////////////////
 // LIFX
 
 const lifxnodeclient = require('node-lifx').Client;
+const LIFX_ERROR = '[LIFX] Light can not be reached.';
 var lifxclient = new lifxnodeclient();
 var lifxlights = [];
 
@@ -74,11 +74,13 @@ module.exports.toggleSet = function(deviceId, value) {
   if (lifx) {
       if (value === 'true'){
         updateComponent(deviceId, 'toggle', true);
-        lifx.light.on();
+        lifx.light.onAsync(0)
+        .catch((e)=>{console.log(LIFX_ERROR)});
       } 
       if (value === 'false'){
         updateComponent(deviceId, 'toggle', 'false');
-        lifx.light.off();
+        lifx.light.offAsync(0)
+        .catch((e)=>{console.log(LIFX_ERROR)});
       }
     }
   });
@@ -124,7 +126,8 @@ module.exports.power_sliderGet = function(deviceId) {
       } else {
         _reject('Brightness expected, but not received.');
       }
-    });
+    })
+    .catch((e)=>{console.log('[LIFX] Light can not be reached.')});
   });
 };
 
@@ -139,9 +142,11 @@ module.exports.temperature_sliderSet = function(deviceId, value) {
     if (lifx) {
       lifx.light.getState(function(e,state){
         if (state && state.color){
-          lifx.light.color(state.color.hue, state.color.saturation, state.color.brightness, value, 200, function(){});
+          lifx.light.color(state.color.hue, state.color.saturation, state.color.brightness, value, 200, function(){})
+          .catch((e)=>{console.log(LIFX_ERROR)});
         }
       })
+      .catch((e)=>{console.log(LIFX_ERROR)});
     }
   }); 
 };
@@ -168,9 +173,11 @@ module.exports.hue_sliderSet = function(deviceId, value) {
     if (lifx) {
       lifx.light.getState(function(e,state){
         if (state && state.color){
-          lifx.light.color(value, state.color.saturation, state.color.brightness, state.color.kelvin, 200, function(){});
+          lifx.light.color(value, state.color.saturation, state.color.brightness, state.color.kelvin, 200, function(){})
+          .catch((e)=>{console.log(LIFX_ERROR)});
         }
       })
+      .catch((e)=>{console.log(LIFX_ERROR)});
     }
   }); 
 };
@@ -197,9 +204,11 @@ module.exports.saturation_sliderSet = function(deviceId, value) {
     if (lifx) {
       lifx.light.getState(function(e,state){
         if (state && state.color){
-          lifx.light.color(state.color.hue, value, state.color.brightness, state.color.kelvin, 200, function(){});
+          lifx.light.color(state.color.hue, value, state.color.brightness, state.color.kelvin, 200, function(){})
+          .catch((e)=>{console.log(LIFX_ERROR)});
         }
       })
+      .catch((e)=>{console.log(LIFX_ERROR)});
     }
   }); 
 };
@@ -224,7 +233,8 @@ module.exports.ir_sliderSet = function(deviceId, value) {
   
   getLifxbyId(deviceId).then((lifx) => {
     if (lifx) {
-      lifx.light.maxIR(value, function(){});
+      lifx.light.maxIR(value, function(){})
+      .catch((e)=>{console.log(LIFX_ERROR)});
     }
   }); 
 };
@@ -236,7 +246,7 @@ module.exports.ir_sliderGet = function(deviceId) {
       } else {
         _reject('Brightness expected, but not received.');
       }
-    });
+    })
   });
 };
 
@@ -247,11 +257,13 @@ module.exports.button = function(name, deviceId) {
   if (lifx) {
       if (name === 'POWER ON'){
         updateComponent(deviceId, 'toggle', true);
-        lifx.light.on();
+        lifx.light.onAsync(0)
+        .catch((e)=>{console.log(LIFX_ERROR)});
       } 
       if (name === 'POWER OFF'){
         updateComponent(deviceId, 'toggle', 'false');
-        lifx.light.off();
+        lifx.light.offAsync(0)
+        .catch((e)=>{console.log(LIFX_ERROR)});
       }
     }
   });
@@ -328,7 +340,8 @@ function getLifxState (deviceId){
         } else {
           _reject('Received unexpected state format.');
         }
-      });
+      })
+      .catch((e)=>{console.log(LIFX_ERROR)});
     })
   });
 }
@@ -342,7 +355,8 @@ function getLifxMaxIR (deviceId){
         } else {
           _reject('Received unexpected MaxIR format.');
         }
-      });
+      })
+      .catch((e)=>{console.log(LIFX_ERROR)});
     })
   });
 }

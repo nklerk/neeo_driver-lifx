@@ -13,6 +13,9 @@ depending on the device, the following features are availeble:
 - iR (Slider)
 
 # Release notes
+## 0.0.3
+- Added Error handeling in case lights could not be reached.
+
 ## 0.0.2
 - Added driver LIFX Simple (On/Off, Dimmer) for any LIFX type.
 
