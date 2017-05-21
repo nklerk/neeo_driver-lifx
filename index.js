@@ -64,8 +64,7 @@ neeoapi.discoverOneBrain()
 
     console.log('- Start server');
     return neeoapi.startServer({
-      brain: '10.2.1.14',
-      //brain,
+      brain,
       port: 6336,
       name: 'lifx-device-adapter',
       devices: devices
