@@ -12,7 +12,19 @@ depending on the device, the following features are availeble:
 - Saturation (Slider)
 - iR (Slider)
 
+Currently only LIFX Light is offered. to get the other drivers remove the comment markers in index.js
+
 # Release notes
+## 0.2.1
+- Commented out all specific LIFX drivers as sliders currently mess things up.
+- Renamed "general" driver to LIFX Light.
+
+Thanks @Michael for being your padawan, and reporting these:
+- Reworked all functions to match promise.
+- Changed object validation
+- Changed function names
+- Changed var, let, const
+
 ## 0.0.3
 - Added Error handeling in case lights could not be reached.
 

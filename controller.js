@@ -1,8 +1,4 @@
-/*  LIFX Driver for NEEO.
-
-Written By:   Niels de Klerk.
-Version:      0.0.1
-Tested with:  LIFX gen3 (Color) Bulbs and LIFX Z Led strips.   */
+/*  LIFX Driver for NEEO. */
 
 
 'use strict';
@@ -13,39 +9,39 @@ let sendComponentUpdate;
 
 //////////////////////
 // LIFX
+const LIFX_ERROR = '[LIFX] Light can not be reached.';
+const LIFX_FADETIME = 200;  //Time in ms for a state fade.
 
 const lifxnodeclient = require('node-lifx').Client;
-const LIFX_ERROR = '[LIFX] Light can not be reached.';
-var lifxclient = new lifxnodeclient();
-var lifxlights = [];
+const lifxclient = new lifxnodeclient();
+let lifxlights = [];
 
 lifxclient.on('light-new', (lifxlight) => {
   lifxlight.getLabel(() => {
-    lifxlight.getHardwareVersion((a,b) =>{
+    lifxlight.getHardwareVersion((e,hardware) =>{
       
       console.log("[LIFX] Discovered new lifx light: "+lifxlight.id);
 
       //Map known specs to Lifx types, default = White.
-      var type = 'White';
-      if (b.productFeatures){
-        if (b.productFeatures.color === true && b.productFeatures.infrared === true && b.productFeatures.multizone === false ){type = '+';}
-        if (b.productFeatures.color === true && b.productFeatures.infrared === false && b.productFeatures.multizone === false ){type = 'Color';}
-        if (b.productFeatures.color === true && b.productFeatures.infrared === false && b.productFeatures.multizone === true ){type = 'Z';}
+      let type = 'White';
+      if (hardware.productFeatures){
+        if (hardware.productFeatures.color === true && hardware.productFeatures.infrared === true && hardware.productFeatures.multizone === false ){type = '+';}
+        if (hardware.productFeatures.color === true && hardware.productFeatures.infrared === false && hardware.productFeatures.multizone === false ){type = 'Color';}
+        if (hardware.productFeatures.color === true && hardware.productFeatures.infrared === false && hardware.productFeatures.multizone === true ){type = 'Z';}
       }
 
       BluePromise.promisifyAll(lifxlight);
-
-      var light = {
+      
+      lifxlights.push({
         id: lifxlight.id, 
         name: lifxlight.label, 
         reachable: true, 
         type: type, 
         light: lifxlight
-      }
-      
-      lifxlights.push(light);
+      });
+
     });
-  },false); // Do not use cache //
+  },false); // Do not cache while getting label //
 });
 
 lifxclient.on('light-online', (lifx) => {
@@ -69,209 +65,126 @@ lifxclient.init();
 //Power Toggle
 module.exports.toggleSet = function(deviceId, value) {
   console.log('[CONTROLLER] switch set to', deviceId, value);
-
-  getLifxbyId(deviceId).then((lifx) =>{
-  if (lifx) {
-      if (value === 'true'){
-        updateComponent(deviceId, 'toggle', true);
-        lifx.light.onAsync(0)
-        .catch((e)=>{console.log(LIFX_ERROR)});
-      } 
-      if (value === 'false'){
-        updateComponent(deviceId, 'toggle', 'false');
-        lifx.light.offAsync(0)
-        .catch((e)=>{console.log(LIFX_ERROR)});
-      }
-    }
-  });
+  if (value === 'true'){ 
+    lifxOn(deviceId); 
+  } else if (value === 'false'){ 
+    lifxOff(deviceId); 
+  }
 };
+
 module.exports.toggleGet = function(deviceId) {
-  return new BluePromise((_resolve, _reject) => {
-    getLifxState(deviceId).then((state) => {
-      if (state) {
-        if (state && state.power === 1){
-          _resolve(true);
-        } else {
-          _resolve(false);
-        }
-      } else {
-        _reject('Powerstate expected but not received.')
-      }
-    });
-  });
+  return getLifxState(deviceId)
+  .then((state) => { 
+    if (state.power === 1){ 
+      return true; 
+    } else { 
+      return false; 
+    }
+  })
+  .catch((e)=>{console.log(LIFX_ERROR)});
 };
 
 //Brightness
-module.exports.power_sliderSet = function(deviceId, value) {
+module.exports.powerSliderSet = function(deviceId, value) {
   console.log('[CONTROLLER] dimmer set to', deviceId, value);
   updateComponent(deviceId, 'power-slider', value);
 
   value = parseInt(value, 10);
   
-  getLifxbyId(deviceId).then((lifx) => {
-    if (lifx) {
-      lifx.light.getState(function(e,state){
-        if (state && state.color){
-          lifx.light.color(state.color.hue, state.color.saturation, value, state.color.kelvin, 200, function(){});
-        }
-      })
-    }
-  }); 
-};
-module.exports.power_sliderGet = function(deviceId) {
-  return new BluePromise((_resolve, _reject) => {
-    getLifxState(deviceId).then((state) => {
-      if (state && state.color && state.color.brightness) {
-        _resolve(state.color.brightness)
-      } else {
-        _reject('Brightness expected, but not received.');
-      }
-    })
-    .catch((e)=>{console.log('[LIFX] Light can not be reached.')});
+  getLifxState(deviceId, true).then((state) =>{
+    state.lifx.light.colorAsync(state.color.hue, state.color.saturation, value, state.color.kelvin, LIFX_FADETIME, function(){})
+    .catch((e)=>{console.log(LIFX_ERROR)});
   });
+};
+module.exports.powerSliderGet = function(deviceId) {
+  return getLifxState(deviceId)
+  .then((state) => { return state.color.brightness; })
+  .catch((e)=>{console.log(LIFX_ERROR)});
 };
 
 //Temperature
-module.exports.temperature_sliderSet = function(deviceId, value) {
+module.exports.temperatureSliderSet = function(deviceId, value) {
   console.log('[CONTROLLER] Color temperature set to', deviceId, value);
   updateComponent(deviceId, 'temperature-slider', value);
 
   value = parseInt(value, 10);
   
-  getLifxbyId(deviceId).then((lifx) => {
-    if (lifx) {
-      lifx.light.getState(function(e,state){
-        if (state && state.color){
-          lifx.light.color(state.color.hue, state.color.saturation, state.color.brightness, value, 200, function(){})
-          .catch((e)=>{console.log(LIFX_ERROR)});
-        }
-      })
-      .catch((e)=>{console.log(LIFX_ERROR)});
-    }
-  }); 
-};
-module.exports.temperature_sliderGet = function(deviceId) {
-  return new BluePromise((_resolve, _reject) => {
-    getLifxState(deviceId).then((state) => {
-      if (state && state.color && state.color.kelvin) {
-        _resolve(state.color.kelvin)
-      } else {
-        _reject('Kelvin expected, but not received.');
-      }
-    });
+  getLifxState(deviceId, true).then((state) =>{
+    state.lifx.light.colorAsync(state.color.hue, state.color.saturation, state.color.brightness, value, LIFX_FADETIME, function(){})
+    .catch((e)=>{console.log(LIFX_ERROR)});
   });
+};
+module.exports.temperatureSliderGet = function(deviceId) {
+  return getLifxState(deviceId)
+  .then((state) => { return state.color.kelvin; })
+  .catch((e)=>{console.log(LIFX_ERROR)});
 };
 
 //hue
-module.exports.hue_sliderSet = function(deviceId, value) {
+module.exports.hueSliderSet = function(deviceId, value) {
   console.log('[CONTROLLER] dimmer set to', deviceId, value);
   updateComponent(deviceId, 'hue-slider', value);
 
   value = parseInt(value, 10);
   
-  getLifxbyId(deviceId).then((lifx) => {
-    if (lifx) {
-      lifx.light.getState(function(e,state){
-        if (state && state.color){
-          lifx.light.color(value, state.color.saturation, state.color.brightness, state.color.kelvin, 200, function(){})
-          .catch((e)=>{console.log(LIFX_ERROR)});
-        }
-      })
-      .catch((e)=>{console.log(LIFX_ERROR)});
-    }
-  }); 
-};
-module.exports.hue_sliderGet = function(deviceId) {
-  return new BluePromise((_resolve, _reject) => {
-    getLifxState(deviceId).then((state) => {
-      if (state && state.color && state.color.hue) {
-        _resolve(state.color.hue)
-      } else {
-        _reject('HUE expected, but not received.');
-      }
-    });
+  getLifxState(deviceId, true).then((state) =>{
+    state.lifx.light.colorAsync(value, state.color.saturation, state.color.brightness, state.color.kelvin, LIFX_FADETIME, function(){})
+    .catch((e)=>{console.log(LIFX_ERROR)});
   });
+};
+module.exports.hueSliderGet = function(deviceId) {
+  return getLifxState(deviceId)
+  .then((state) => { return state.color.hue; })
+  .catch((e)=>{console.log(LIFX_ERROR)});
 };
 
 //saturation
-module.exports.saturation_sliderSet = function(deviceId, value) {
+module.exports.saturationSliderSet = function(deviceId, value) {
   console.log('[CONTROLLER] dimmer set to', deviceId, value);
   updateComponent(deviceId, 'saturation-slider', value);
 
   value = parseInt(value, 10);
   
-  getLifxbyId(deviceId).then((lifx) => {
-    if (lifx) {
-      lifx.light.getState(function(e,state){
-        if (state && state.color){
-          lifx.light.color(state.color.hue, value, state.color.brightness, state.color.kelvin, 200, function(){})
-          .catch((e)=>{console.log(LIFX_ERROR)});
-        }
-      })
-      .catch((e)=>{console.log(LIFX_ERROR)});
-    }
-  }); 
-};
-module.exports.saturation_sliderGet = function(deviceId) {
-  return new BluePromise((_resolve, _reject) => {
-    getLifxState(deviceId).then((state) => {
-      if (state && state.color && state.color.saturation) {
-        _resolve(state.color.saturation)
-      } else {
-        _reject('Saturation expected, but not received.');
-      }
-    });
+  getLifxState(deviceId, true).then((state) =>{
+    state.lifx.light.colorAsync(state.color.hue, value, state.color.brightness, state.color.kelvin, LIFX_FADETIME, function(){})
+    .catch((e)=>{console.log(LIFX_ERROR)});
   });
+};
+module.exports.saturationSliderGet = function(deviceId) {
+    return getLifxState(deviceId)
+  .then((state) => { return state.color.saturation; })
+  .catch((e)=>{console.log(LIFX_ERROR)});
 };
 
 //Infrared
-module.exports.ir_sliderSet = function(deviceId, value) {
+module.exports.irSliderSet = function(deviceId, value) {
   console.log('[CONTROLLER] dimmer set to', deviceId, value);
   updateComponent(deviceId, 'power-slider', value);
 
   value = parseInt(value, 10);
   
   getLifxbyId(deviceId).then((lifx) => {
-    if (lifx) {
-      lifx.light.maxIR(value, function(){})
-      .catch((e)=>{console.log(LIFX_ERROR)});
-    }
+    lifx.light.getMaxIRAsync(value, function(){})
+    .catch((e)=>{console.log(LIFX_ERROR)});
   }); 
 };
-module.exports.ir_sliderGet = function(deviceId) {
-  return new BluePromise((_resolve, _reject) => {
-    getLifxMaxIR(deviceId).then((maxIR) => {
-      if (maxIR) {
-        _resolve(maxIR)
-      } else {
-        _reject('Brightness expected, but not received.');
-      }
-    })
-  });
+module.exports.irSliderGet = function(deviceId) {
+  return getLifxMaxIR(deviceId).then((maxIR) => { return(maxIR); });
 };
 
 //buttons
 module.exports.button = function(name, deviceId) {
   console.log(`[CONTROLLER] ${name} button pressed on ${deviceId}!`);
-  getLifxbyId(deviceId).then((lifx) =>{
-  if (lifx) {
-      if (name === 'POWER ON'){
-        updateComponent(deviceId, 'toggle', true);
-        lifx.light.onAsync(0)
-        .catch((e)=>{console.log(LIFX_ERROR)});
-      } 
-      if (name === 'POWER OFF'){
-        updateComponent(deviceId, 'toggle', 'false');
-        lifx.light.offAsync(0)
-        .catch((e)=>{console.log(LIFX_ERROR)});
-      }
-    }
-  });
+  if (name === 'Light ON'){ 
+    lifxOn(deviceId); 
+  } else if (name === 'Light OFF'){ 
+    lifxOff(deviceId); 
+  }
 };
 
 //Notifications
 module.exports.registerStateUpdateCallback = function(updateFunction) {
-  console.log('[CONTROLLER] register update state for complicatedDevice');
+  console.log('[CONTROLLER] register update state for LIFX');
   sendComponentUpdate = updateFunction;
 };
 
@@ -281,19 +194,19 @@ module.exports.registerStateUpdateCallback = function(updateFunction) {
 //////////////////////
 // Module Exports, Discovery
 
-module.exports.discover_white = function() {
+module.exports.discoverWhite = function() {
   return discover('White');
 };
-module.exports.discover_color = function() {
+module.exports.discoverColor = function() {
   return discover('Color');
 };
-module.exports.discover_plus = function() {
+module.exports.discoverPlus = function() {
   return discover('+');
 };
-module.exports.discover_z = function() {
+module.exports.discoverZ = function() {
   return discover('Z');
 };
-module.exports.discover_simple = function() {
+module.exports.discoverLight = function() {
   return sharedDeviceDiscovery().map((device) => ({
     id: device.id,
     name: device.name,
@@ -321,67 +234,84 @@ function sharedDeviceDiscovery() {
 }
 
 function getLifxbyId (deviceId){
-  return new BluePromise((_resolve, _reject) => {
+  return new BluePromise((resolve, reject) => {
     const lifx = sharedDeviceDiscovery().find((device)=> device.id === deviceId);
     if (lifx){
-      _resolve(lifx);
+      resolve(lifx);
     } else {
-      _reject('Light not found.');
+      reject('Light not found.');
     }
   });
 }
 
-function getLifxState (deviceId){
-  return new BluePromise((_resolve, _reject) => {
-    getLifxbyId(deviceId).then((lifx) => {
-      lifx.light.getStateAsync().then((state) => { 
-        if (state && state.color){
-          _resolve(state);
-        } else {
-          _reject('Received unexpected state format.');
+function getLifxState (deviceId, returnLifx){
+  return getLifxbyId(deviceId)
+  .then((lifx) => { 
+    return lifx.light.getStateAsync()
+    .then((state) => { 
+      if (state && typeof state.power === 'number' && state.color && state.color.brightness && state.color.hue && state.color.kelvin && state.color.saturation){
+        if (returnLifx) {
+          state.lifx = lifx;
         }
-      })
-      .catch((e)=>{console.log(LIFX_ERROR)});
+        return state;
+      } else {
+        BluePromise.reject('[LIFX] Received unexpected state format.');
+      }
     })
-  });
+    .catch((e)=>{console.log(LIFX_ERROR)});
+  })
 }
 
 function getLifxMaxIR (deviceId){
-  return new BluePromise((_resolve, _reject) => {
-    getLifxbyId(deviceId).then((lifx) => {
-      lifx.light.getMaxIRAsync().then((MaxIR) => {
-        if (MaxIR){
-          _resolve(MaxIR);
-        } else {
-          _reject('Received unexpected MaxIR format.');
-        }
-      })
-      .catch((e)=>{console.log(LIFX_ERROR)});
+  return getLifxbyId(deviceId)
+  .then((lifx) => {
+    return lifx.light.getMaxIRAsync()
+    .then((MaxIR) => {
+      if (MaxIR){
+        return(MaxIR);
+      } else {
+        BluePromise.reject('[LIFX] Received unexpected MaxIR format.');
+      }
     })
+    .catch((e)=>{console.log(LIFX_ERROR)});
   });
 }
 
 function updateComponent(uniqueDeviceId, component, value){
   if (sendComponentUpdate && uniqueDeviceId && component && value) {
-    const updatePayload = {
+
+    sendComponentUpdate({
       uniqueDeviceId: uniqueDeviceId,
       component: component,
       value: value
-    };
-    
-    sendComponentUpdate(updatePayload)
+    })
     .catch((error) => {
-      console.log('failed to send notification', error.message);
+      console.log('[CONTROLLER] Failed to send notification', error.message);
     });
+
   }
 }
 
+function lifxOn (deviceId){
+  getLifxbyId(deviceId).then((lifx) => {
+    updateComponent(deviceId, 'toggle', true);
+    lifx.light.onAsync(LIFX_FADETIME)
+    .catch((e)=>{console.log(LIFX_ERROR)});
+  });
+}
+
+function lifxOff (deviceId){
+  getLifxbyId(deviceId).then((lifx) => {
+    updateComponent(deviceId, 'toggle', 'false');
+    lifx.light.offAsync(LIFX_FADETIME)
+    .catch((e)=>{console.log(LIFX_ERROR)});
+  });
+}
+
 function lifxReachableSet (deviceId, reachable){
-  for (var i in lifxlights){
+  for (let i in lifxlights){
     if(lifxlights[i].id === deviceId) {
       lifxlights[i].reachable = reachable;
     }
   }
 }
-
-
