@@ -247,18 +247,22 @@ function getLifxbyId (deviceId){
 function getLifxState (deviceId, returnLifx){
   return getLifxbyId(deviceId)
   .then((lifx) => { 
-    return lifx.light.getStateAsync()
-    .then((state) => { 
-      if (state && typeof state.power === 'number' && state.color && state.color.brightness && state.color.hue && state.color.kelvin && state.color.saturation){
-        if (returnLifx) {
-          state.lifx = lifx;
+    if (lifx){
+      return lifx.light.getStateAsync()
+      .then((state) => { 
+        if (state && typeof state.power === 'number' && state.color && state.color.brightness && state.color.hue && state.color.kelvin && state.color.saturation){
+          if (returnLifx) {
+            state.lifx = lifx;
+          }
+          return state;
+        } else {
+          BluePromise.reject('[LIFX] Received unexpected state format.');
         }
-        return state;
-      } else {
-        BluePromise.reject('[LIFX] Received unexpected state format.');
-      }
-    })
-    .catch((e)=>{console.log(LIFX_ERROR)});
+      })
+      .catch((e)=>{console.log(LIFX_ERROR)});
+    } else {
+      BluePromise.reject('[LIFX] Light not registered.');
+    }
   })
 }
 
