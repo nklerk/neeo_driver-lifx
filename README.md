@@ -15,6 +15,11 @@ depending on the device, the following features are availeble:
 Currently only LIFX Light is offered. to get the other drivers remove the comment markers in index.js
 
 # Release notes
+## 0.2.2
+- Fixed an issue when one of the lifx values was 0.
+- Fixed an issue when a light coud not be found.
+- Fixed an issue when a lightid never registered
+
 ## 0.2.1
 - Commented out all specific LIFX drivers as sliders currently mess things up.
 - Renamed "general" driver to LIFX Light.

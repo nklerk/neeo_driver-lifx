@@ -93,8 +93,7 @@ module.exports.powerSliderSet = function(deviceId, value) {
   
   getLifxState(deviceId, true).then((state) =>{
     state.lifx.light.colorAsync(state.color.hue, state.color.saturation, value, state.color.kelvin, LIFX_FADETIME, function(){})
-    .catch((e)=>{console.log(LIFX_ERROR)});
-  });
+  }).catch((e)=>{console.log('[LIFX] Light not registered.');});
 };
 module.exports.powerSliderGet = function(deviceId) {
   return getLifxState(deviceId)
@@ -249,12 +248,14 @@ function getLifxState (deviceId, returnLifx){
   .then((lifx) => { 
     if (lifx){
       return lifx.light.getStateAsync()
-      .then((state) => { 
-        if (state && typeof state.power === 'number' && state.color && state.color.brightness && state.color.hue && state.color.kelvin && state.color.saturation){
+      .then((state) => {
+
+        if (state && typeof state.power === 'number' && typeof state.color === 'object' && typeof state.color.brightness === 'number' && typeof state.color.hue === 'number' && typeof state.color.kelvin === 'number' && typeof state.color.saturation === 'number'){
           if (returnLifx) {
             state.lifx = lifx;
           }
           return state;
+
         } else {
           BluePromise.reject('[LIFX] Received unexpected state format.');
         }
@@ -263,7 +264,7 @@ function getLifxState (deviceId, returnLifx){
     } else {
       BluePromise.reject('[LIFX] Light not registered.');
     }
-  })
+  });
 }
 
 function getLifxMaxIR (deviceId){
