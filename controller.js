@@ -283,7 +283,7 @@ function getLifxMaxIR (deviceId){
 }
 
 function updateComponent(uniqueDeviceId, component, value){
-  if (sendComponentUpdate && uniqueDeviceId && component && value) {
+  if (typeof sendComponentUpdate === 'function' && typeof uniqueDeviceId === 'string' && typeof component === 'string' && typeof value !== 'undefined')  {
 
     sendComponentUpdate({
       uniqueDeviceId: uniqueDeviceId,
@@ -307,7 +307,7 @@ function lifxOn (deviceId){
 
 function lifxOff (deviceId){
   getLifxbyId(deviceId).then((lifx) => {
-    updateComponent(deviceId, 'toggle', 'false');
+    updateComponent(deviceId, 'toggle', false);
     lifx.light.offAsync(LIFX_FADETIME)
     .catch((e)=>{console.log(LIFX_ERROR)});
   });

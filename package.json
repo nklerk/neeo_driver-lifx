@@ -1,6 +1,6 @@
 {
   "name": "neeo_driver-lifx",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "LIFX driver for NEEO",
   "main": "index.js",
   "scripts": {
