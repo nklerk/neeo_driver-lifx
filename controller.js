@@ -183,7 +183,6 @@ module.exports.button = function(name, deviceId) {
 
 //Notifications
 module.exports.registerStateUpdateCallback = function(updateFunction) {
-  console.log('[CONTROLLER] register update state for LIFX');
   sendComponentUpdate = updateFunction;
 };
 

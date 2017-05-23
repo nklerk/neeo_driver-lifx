@@ -4,14 +4,14 @@ const neeoapi = require('neeo-sdk');
 const controller = require('./controller');
 
 
-console.log('NEEO "LIFX" device adapter');
+console.log('NEEO "LIFX" device driver');
 console.log('---------------------------------------------');
 
 
 const devices = [
   lifxbuilder('Light'),
   //lifxbuilder('Color'), 
-  ///lifxbuilder('White'), 
+  //lifxbuilder('White'), 
   //lifxbuilder('+'), 
   //lifxbuilder('Z') 
 ];
@@ -66,12 +66,12 @@ function lifxbuilder(type){
 }
 
 
-console.log('- discover one NEEO Brain...');
+console.log('[DRIVER] discover one NEEO Brain...');
 neeoapi.discoverOneBrain()
   .then((brain) => {
-    console.log('- Brain discovered:', brain.name);
+    console.log('[DRIVER] Brain discovered:', brain.name);
 
-    console.log('- Start server');
+    console.log('[DRIVER] Starting server');
     return neeoapi.startServer({
       //brain,
       brain: '10.2.1.14',
@@ -81,7 +81,7 @@ neeoapi.discoverOneBrain()
     });
   })
   .then(() => {
-    console.log('# READY! use the NEEO app to search for "LIFX".');
+    driverReady();
   })
   .catch((err) => {
     console.error('ERROR!', err);
@@ -89,4 +89,11 @@ neeoapi.discoverOneBrain()
   });
 
 
+function driverReady(){
+  console.log('[DRIVER] READY!\n\n Use the NEEO app to add a new device and search for:');
+  for (let i in devices) {
+    console.log (' -', devices[i].manufacturer , devices[i].devicename);
+  }
+  console.log ('\n---------------------------------------------');
+}
 

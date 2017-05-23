@@ -17,6 +17,7 @@ Currently only LIFX Light is offered. to get the other drivers remove the commen
 # Release notes
 ## 0.2.3
 - Fixed an issue that occured when a switch was set to false.
+- Changed console logging.
 
 ## 0.2.2
 - Fixed an issue that occured when one of the lifx values was 0.
