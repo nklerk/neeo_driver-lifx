@@ -9,6 +9,7 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "node-lifx": "^0.8.0"
+    "node-lifx": "^0.8.0",
+    "neeo-sdk": "^0.37.2"
   }
 }
