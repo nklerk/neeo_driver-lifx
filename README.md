@@ -14,7 +14,19 @@ depending on the device, the following features are availeble:
 
 Currently only LIFX Light is offered. to get the other drivers remove the comment markers in index.js
 
+# How to Install.
+
+1)  Download or clone the git code.
+2)  Extract the files
+3)  Open your computer's console or command prompt.
+4)  go to the folder where the extracted files are.
+5)  Type: npm install
+6)  start the driver by typing: node index.js
+
 # Release notes
+## 0.2.4
+- Catched possible crash.
+
 ## 0.2.3
 - Fixed an issue that occured when a switch was set to false.
 - Changed console logging.

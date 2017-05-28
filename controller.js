@@ -24,7 +24,7 @@ lifxclient.on('light-new', (lifxlight) => {
 
       //Map known specs to Lifx types, default = White.
       let type = 'White';
-      if (hardware.productFeatures){
+      if (hardware && hardware.productFeatures){
         if (hardware.productFeatures.color === true && hardware.productFeatures.infrared === true && hardware.productFeatures.multizone === false ){type = '+';}
         if (hardware.productFeatures.color === true && hardware.productFeatures.infrared === false && hardware.productFeatures.multizone === false ){type = 'Color';}
         if (hardware.productFeatures.color === true && hardware.productFeatures.infrared === false && hardware.productFeatures.multizone === true ){type = 'Z';}
