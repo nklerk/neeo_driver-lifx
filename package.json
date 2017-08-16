@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "",
+  "author": "Niels de Klerk",
+  "license": "UNLICENSED",
   "dependencies": {
     "node-lifx": "^0.8.0",
     "neeo-sdk": "^0.37.2"

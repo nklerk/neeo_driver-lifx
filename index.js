@@ -30,7 +30,6 @@ function lifxbuilder(type){
   .addButtonHander(controller.button);
   
   if (type === 'Light') {
-    light.addSlider({ name: 'temperature-slider', label: 'Temperature', range: [2500, 9000], unit: 'K' }, { setter: controller.temperatureSliderSet, getter: controller.temperatureSliderGet })
     light.enableDiscovery({ headerText: 'Discover any LIFX type', description: 'Make sure that the light(s) are powered on.'}, controller.discoverLight);
   }
 
