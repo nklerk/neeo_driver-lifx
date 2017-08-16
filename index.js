@@ -12,7 +12,7 @@ const devices = [
   //lifxbuilder('White'), 
   //lifxbuilder('+'), 
   //lifxbuilder('Z') 
-];
+]; //Remove the // on the lifxbuilder to support the specific lifx, these are disabled because of the way lights are currently handled on the NEEO side..
 
 function lifxbuilder(type){
   var light = neeoapi.buildDevice(type)
@@ -29,19 +29,16 @@ function lifxbuilder(type){
   if (type === 'Light') {
     light.enableDiscovery({ headerText: 'Discover any LIFX type', description: 'Make sure that the light(s) are powered on.'}, controller.discoverLight);
   }
-
   if (type === 'White') {
     light.addSlider({ name: 'temperature-slider', label: 'Temperature', range: [2500, 9000], unit: 'K' }, { setter: controller.temperatureSliderSet, getter: controller.temperatureSliderGet })
     light.enableDiscovery({ headerText: 'Discover LIFX '+type, description: 'Make sure that the light(s) are powered on.'}, controller.discoverWhite);
   }
-
   if (type === 'Color') {
     light.addSlider({ name: 'temperature-slider', label: 'Temperature', range: [2500, 9000], unit: 'K' }, { setter: controller.temperatureSliderSet, getter: controller.temperatureSliderGet })
     light.addSlider({ name: 'hue-slider', label: 'HUE', range: [0, 360], unit: '°' }, { setter: controller.hueSliderSet, getter: controller.hueSliderGet })
     light.addSlider({ name: 'saturation-slider', label: 'Saturation', range: [0, 100], unit: '%' }, { setter: controller.saturationSliderSet, getter: controller.saturationSliderGet }) 
     light.enableDiscovery({ headerText: 'Discover LIFX '+type, description: 'Make sure that the light(s) are powered on.'}, controller.discoverColor);
   }
-
   if (type === '+') {
     light.addSlider({ name: 'temperature-slider', label: 'Temperature', range: [2500, 9000], unit: 'K' }, { setter: controller.temperatureSliderSet, getter: controller.temperatureSliderGet })
     light.addSlider({ name: 'hue-slider', label: 'HUE', range: [0, 360], unit: '°' }, { setter: controller.hueSliderSet, getter: controller.hueSliderGet })
@@ -49,7 +46,6 @@ function lifxbuilder(type){
     light.addSlider({ name: 'iR-slider', label: 'iR', range: [0, 100], unit: '%' }, { setter: controller.irSliderSet, getter: controller.irSliderGet }) 
     light.enableDiscovery({ headerText: 'Discover LIFX '+type, description: 'Make sure that the light(s) are powered on.'}, controller.discoverPlus);
   }
-
   if (type === 'Z') {
     light.addSlider({ name: 'temperature-slider', label: 'Temperature', range: [2500, 9000], unit: 'K' }, { setter: controller.temperatureSliderSet, getter: controller.temperatureSliderGet })
     light.addSlider({ name: 'hue-slider', label: 'HUE', range: [0, 360], unit: '°' }, { setter: controller.hueSliderSet, getter: controller.hueSliderGet })
@@ -57,7 +53,6 @@ function lifxbuilder(type){
     light.enableDiscovery({ headerText: 'Discover LIFX '+type, description: 'Make sure that the light(s) are powered on.'}, controller.discoverZ);
     //Multizone not yet supported in node module.
   }
-  
   return light
 }
 
