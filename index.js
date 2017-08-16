@@ -3,10 +3,8 @@
 const neeoapi = require('neeo-sdk');
 const controller = require('./controller');
 
-
 console.log('NEEO "LIFX" device driver');
 console.log('---------------------------------------------');
-
 
 const devices = [
   lifxbuilder('Light'),
@@ -15,7 +13,6 @@ const devices = [
   //lifxbuilder('+'), 
   //lifxbuilder('Z') 
 ];
-
 
 function lifxbuilder(type){
   var light = neeoapi.buildDevice(type)

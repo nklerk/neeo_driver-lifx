@@ -57,8 +57,6 @@ lifxclient.on('light-offline', (lifx) => {
 lifxclient.init();
 
 
-
-
 //////////////////////
 // Module Exports, Components
 

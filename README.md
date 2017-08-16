@@ -24,6 +24,9 @@ Currently only LIFX Light is offered. to get the other drivers remove the commen
 6)  start the driver by typing: node index.js
 
 # Release notes
+## 0.2.5
+- Removed the white color temperature slider.
+
 ## 0.2.4
 - Catched possible crash.
 
